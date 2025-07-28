@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scene 6 - Toolbox</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', monospace;
+      background: #000000;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background Image - Exact Figma positioning */
+    .background-image {
+      position: absolute;
+      left: 0;
+      top: -135px;
+      width: 1920px;
+      height: 1280px;
+      background: url('../assets/Backgrounds/bg-landing-scene6-small.png') center center/cover no-repeat;
+      background-size: cover;
+      z-index: 1;
+    }
+
+    /* Title Panel - Exact Figma positioning */
+    .title-panel {
+      position: absolute;
+      left: 732px;
+      top: 251px;
+      width: 455px;
+      height: 127px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25), 
+                  0px 2px 4px -2px rgba(0, 0, 0, 0.1), 
+                  0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    .title-content {
+      position: absolute;
+      left: 0;
+      top: 31px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      line-height: 0;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .subtitle {
+      position: absolute;
+      height: 15px;
+      left: 227.5px;
+      font-size: 12px;
+      top: 0;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    .title {
+      position: absolute;
+      height: 44px;
+      left: 227.5px;
+      font-size: 36px;
+      top: 22px;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    /* Main Info Panel - Exact Figma positioning */
+    .info-panel {
+      position: absolute;
+      left: 732px;
+      top: 405px;
+      width: 455px;
+      height: 353px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25), 
+                  0px 2px 4px -2px rgba(0, 0, 0, 0.1), 
+                  0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    /* Info Content - Mission message */
+    .mission-message {
+      position: absolute;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      height: 132px;
+      line-height: normal;
+      left: 44px;
+      color: #ffffff;
+      font-size: 24px;
+      text-align: left;
+      top: 70px;
+      width: 365px;
+    }
+
+    .mission-line {
+      display: block;
+      margin-bottom: 0;
+    }
+
+    .mission-spacing {
+      display: block;
+      margin-bottom: 0;
+    }
+
+    /* Voice Button - Exact Figma positioning */
+    .voice-button-container {
+      position: absolute;
+      left: 44px;
+      top: 262px;
+      width: 367px;
+      z-index: 6;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .voice-button-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .voice-button-border {
+      position: absolute;
+      height: 74px;
+      left: 0;
+      border-radius: 20px;
+      top: -25px;
+      width: 367px;
+      border: 2px solid #ffffff;
+      pointer-events: none;
+    }
+
+    .voice-button-text {
+      position: absolute;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      height: 23px;
+      line-height: 0;
+      left: 183.5px;
+      color: #ffffff;
+      font-size: 20px;
+      text-align: center;
+      top: 0;
+      transform: translateX(-50%);
+      width: 367px;
+      line-height: normal;
+      cursor: pointer;
+    }
+
+    .voice-button-text.listening {
+      animation: pulse 2s infinite;
+    }
+
+    .command {
+      font-weight: 400;
+    }
+
+    /* Astronaut - Exact Figma positioning */
+    .astronaut {
+      position: absolute;
+      left: 109px;
+      top: 211px;
+      width: 552px;
+      height: 828px;
+      flex-shrink: 0;
+      aspect-ratio: 2/3;
+      background: url('../assets/Astronaut/astronaut-back-small.png') center center/cover no-repeat;
+      z-index: 3;
+      opacity: 0;
+      transform: translateX(-50px) scale(0.9);
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .astronaut.animate {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+
+    .astronaut.jumping {
+      animation: jumpAnimation 0.5s ease-in-out;
+    }
+
+    @keyframes jumpAnimation {
+      0% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+      50% {
+        transform: translateX(0) translateY(-40px) scale(1.1);
+      }
+      100% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+    }
+
+    /* Typewriter Animation */
+    .typewriter {
+      opacity: 0;
+      position: relative;
+      display: inline-block;
+    }
+
+    .typewriter::after {
+      content: '|';
+      color: #ffffff;
+      font-weight: 100;
+      animation: blink 0.8s infinite;
+      position: absolute;
+      right: -8px;
+    }
+
+    .typewriter.typing-complete::after {
+      display: none;
+    }
+
+    .typewriter.animate {
+      opacity: 1;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+      50% { 
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1440px) {
+      .title-panel, .info-panel {
+        left: 600px;
+      }
+      
+      .astronaut {
+        left: 80px;
+        width: 450px;
+        height: 700px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .title-panel, .info-panel {
+        left: 400px;
+        width: 400px;
+      }
+      
+      .astronaut {
+        left: 50px;
+        width: 350px;
+        height: 550px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Image -->
+  <div class="background-image"></div>
+
+  <!-- Title Panel -->
+  <div class="title-panel">
+    <div class="title-content">
+      <div class="subtitle typewriter" id="subtitle">PROTOTYPE SCENE [06]</div>
+      <div class="title typewriter" id="title">MISSION STATUS</div>
+    </div>
+  </div>
+
+  <!-- Main Info Panel -->
+  <div class="info-panel">
+    <div class="mission-message typewriter" id="missionMessage">
+      <span class="mission-line" id="missionLine1">GREAT YOU FOUND IT!</span>
+      <span class="mission-spacing" id="missionSpacing">&nbsp;</span>
+      <span class="mission-line" id="missionLine2">WHAT DO YOU WANT TO DO WITH IT?</span>
+    </div>
+
+    <!-- Voice Button -->
+    <div class="voice-button-container" id="voiceButtonContainer">
+      <div class="voice-button-border"></div>
+      <div class="voice-button-text" id="voicePrompt">
+        <span>SAY: </span>
+        <span class="command">"USE THE SPADE"</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Astronaut -->
+  <div class="astronaut"></div>
+
+  <script>
+    // Jump Animation Function
+    function astronautJump() {
+      const astronaut = document.querySelector('.astronaut');
+      if (!astronaut) return;
+      
+      const currentSrc = astronaut.style.backgroundImage || astronaut.src;
+      let baseImage, jumpImage;
+      
+      // Determine which images to use based on current astronaut (Scene 6 uses back)
+      baseImage = '../assets/Astronaut/astronaut-back-small.png';
+      jumpImage = '../assets/Astronaut/astronaut-jump-back-small.png';
+      
+      // Jump animation sequence
+      if (astronaut.style.backgroundImage) {
+        // For astronauts using background-image
+        astronaut.style.backgroundImage = `url('${jumpImage}')`;
+        setTimeout(() => {
+          astronaut.style.backgroundImage = `url('${baseImage}')`;
+        }, 500);
+      } else {
+        // For astronauts using src attribute
+        astronaut.src = jumpImage;
+        setTimeout(() => {
+          astronaut.src = baseImage;
+        }, 500);
+      }
+      
+      // Add jump animation class
+      astronaut.classList.add('jumping');
+      setTimeout(() => {
+        astronaut.classList.remove('jumping');
+      }, 500);
+    }
+
+    // Speech recognition setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+             recognition.onresult = function(event) {
+         const command = event.results[0][0].transcript.toLowerCase().trim();
+         console.log('Heard:', command);
+         
+         // Check for jump command first
+         if (command.includes('jump')) {
+           console.log('Jump command recognized');
+           astronautJump();
+           return;
+         }
+         
+         if (command.includes('use the spade') || command.includes('use spade') || command.includes('spade')) {
+           console.log('Command matched! Navigating to scene 7...');
+           // Navigate to next scene
+           window.location.href = 'scene7-complete.html';
+         } else {
+           console.log('Command not matched. Try saying: "use the spade"');
+         }
+       };
+
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        stopListening();
+      };
+
+      recognition.onend = function() {
+        if (isListening) {
+          setTimeout(() => {
+            if (isListening) recognition.start();
+          }, 100);
+        }
+      };
+    }
+
+    function startListening() {
+      if (recognition && !isListening) {
+        isListening = true;
+        recognition.start();
+        document.getElementById('voicePrompt').classList.add('listening');
+      }
+    }
+
+    function stopListening() {
+      if (recognition && isListening) {
+        isListening = false;
+        recognition.stop();
+        document.getElementById('voicePrompt').classList.remove('listening');
+      }
+    }
+
+    // Typewriter Animation Function (same as other scenes)
+    function typeWriter(element, text, speed = 30) {
+      element.innerHTML = '';
+      element.style.opacity = '1';
+      element.classList.add('typing');
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          setTimeout(() => {
+            element.classList.add('typing-complete');
+          }, 200);
+        }
+      }
+      type();
+    }
+
+    function initTypewriterAnimations() {
+      const typewriterElements = [
+        { element: document.getElementById('subtitle'), delay: 200, text: 'PROTOTYPE SCENE [06]' },
+        { element: document.getElementById('title'), delay: 600, text: 'MISSION STATUS' },
+        { element: document.getElementById('missionMessage'), delay: 1000, text: 'GREAT YOU FOUND IT!\n\nWHAT DO YOU WANT TO DO WITH IT?' }
+      ];
+
+      // Clear initial content
+      typewriterElements.forEach(({ element }) => {
+        if (element) {
+          element.innerHTML = '';
+        }
+      });
+
+      // Start typing animations
+      typewriterElements.forEach(({ element, delay, text }) => {
+        if (element) {
+          setTimeout(() => {
+            typeWriter(element, text, 40);
+          }, delay);
+        }
+      });
+    }
+
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', () => {
+      initTypewriterAnimations();
+      
+      // Animate astronaut in after text
+      setTimeout(() => {
+        document.querySelector('.astronaut').classList.add('animate');
+      }, 2000);
+
+      // Show voice button after astronaut
+      setTimeout(() => {
+        document.getElementById('voiceButtonContainer').classList.add('show');
+      }, 3200);
+
+      // Auto-start listening after button animation
+      setTimeout(() => {
+        startListening();
+      }, 4000);
+    });
+
+    // ESC key to reset to game launcher
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        window.location.href = '../game-launcher.html';
+      }
+    });
+
+    // Handle page visibility change to manage speech recognition
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopListening();
+      } else {
+        setTimeout(startListening, 500);
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopListening();
+    });
+  </script>
+</body>
+</html> 

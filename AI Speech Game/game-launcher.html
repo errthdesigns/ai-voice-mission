@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Voice Mission - Game Launcher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', monospace;
+      background: #000000;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background Image - Exact Figma positioning */
+    .background-image {
+      position: absolute;
+      left: 0;
+      top: -200px;
+      width: 1920px;
+      height: 1280px;
+      background: url('assets/Backgrounds/bg-landing-intro.png') center center/cover no-repeat;
+      background-size: cover;
+      z-index: 1;
+    }
+
+    /* Title Panel - Centered positioning */
+    .title-panel {
+      position: absolute;
+      left: 50%;
+      top: 395px;
+      width: 455px;
+      height: 127px;
+      transform: translateX(-50%) translateY(30px);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25), 
+                  0px 2px 4px -2px rgba(0, 0, 0, 0.1), 
+                  0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 4;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeInUp 1s ease-out 0.5s forwards;
+    }
+
+    .title-content {
+      position: absolute;
+      left: 0;
+      top: 31px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      line-height: 0;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .subtitle {
+      position: absolute;
+      height: 15px;
+      left: 227.5px;
+      font-size: 12px;
+      top: 0;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    .title {
+      position: absolute;
+      height: 44px;
+      left: 227.5px;
+      font-size: 36px;
+      top: 22px;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    /* Voice Button Panel - Centered positioning */
+    .voice-button-panel {
+      position: absolute;
+      left: 50%;
+      top: 558px;
+      width: 455px;
+      height: 127px;
+      transform: translateX(-50%) translateY(30px);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25), 
+                  0px 2px 4px -2px rgba(0, 0, 0, 0.1), 
+                  0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 4;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeInUp 1s ease-out 1s forwards;
+    }
+
+    .voice-button-border {
+      position: absolute;
+      height: 74px;
+      left: 44px;
+      border-radius: 20px;
+      top: 23px;
+      width: 367px;
+      border: 2px solid #ffffff;
+      pointer-events: none;
+    }
+
+    .voice-button-text {
+      position: absolute;
+      left: 44px;
+      top: 48px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      height: 23px;
+      line-height: 0;
+      color: #ffffff;
+      font-size: 20px;
+      text-align: center;
+      width: 367px;
+      line-height: normal;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .voice-button-text:hover {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .voice-button-text.listening {
+      animation: pulse 2s infinite;
+    }
+
+    .command {
+      font-weight: 400;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+      50% { 
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .title-panel, .voice-button-panel {
+        width: 90%;
+        max-width: 400px;
+      }
+      
+      .title-panel {
+        top: 300px;
+        transform: translateX(-50%) translateY(30px);
+      }
+      
+      .voice-button-panel {
+        top: 450px;
+        transform: translateX(-50%) translateY(30px);
+      }
+      
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Image -->
+  <div class="background-image"></div>
+
+  <!-- Title Panel -->
+  <div class="title-panel">
+    <div class="title-content">
+      <div class="subtitle">PROTOTYPE SCENE [INTRO]</div>
+      <div class="title">AI VOICE MISSION</div>
+    </div>
+  </div>
+
+  <!-- Voice Button Panel -->
+  <div class="voice-button-panel">
+    <div class="voice-button-border"></div>
+    <div class="voice-button-text" id="voicePrompt" onclick="startGame()">
+      <span>SAY </span>
+      <span class="command">"PLAY"</span>
+    </div>
+  </div>
+
+  <script>
+    // Speech recognition setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase().trim();
+        console.log('Heard:', command);
+        
+        if (command.includes('play')) {
+          console.log('Command matched! Starting game...');
+          startGame();
+        } else {
+          console.log('Command not matched. Try saying: "play"');
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        stopListening();
+      };
+
+      recognition.onend = function() {
+        if (isListening) {
+          setTimeout(() => {
+            if (isListening) recognition.start();
+          }, 100);
+        }
+      };
+    }
+
+    function startListening() {
+      if (recognition && !isListening) {
+        isListening = true;
+        recognition.start();
+        document.getElementById('voicePrompt').classList.add('listening');
+      }
+    }
+
+    function stopListening() {
+      if (recognition && isListening) {
+        isListening = false;
+        recognition.stop();
+        document.getElementById('voicePrompt').classList.remove('listening');
+      }
+    }
+
+    function startGame() {
+      stopListening();
+      window.location.href = 'scenes/scene0-mission-briefing.html';
+    }
+
+    // Initialize voice recognition after animations
+    setTimeout(() => {
+      startListening();
+    }, 2000);
+
+    // Handle page visibility change
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopListening();
+      } else {
+        setTimeout(startListening, 500);
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopListening();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        startGame();
+      }
+    });
+  </script>
+</body>
+</html> 

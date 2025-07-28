@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scene 4 - Plant Tree</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', monospace;
+      background: url('../assets/Backgrounds/bg-landing-scene4-small.png') center center/cover no-repeat;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Title Panel - Exact Figma positioning */
+    .title-panel {
+      position: absolute;
+      left: 297px;
+      top: 204px;
+      width: 455px;
+      height: 127px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25), 
+                  0px 2px 4px -2px rgba(0, 0, 0, 0.1), 
+                  0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    .title-content {
+      position: absolute;
+      left: 0;
+      top: 31px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      line-height: 0;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .subtitle {
+      position: absolute;
+      height: 15px;
+      left: 227.5px;
+      font-size: 12px;
+      top: 0;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    .title {
+      position: absolute;
+      height: 44px;
+      left: 227.5px;
+      font-size: 36px;
+      top: 22px;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    /* Main Info Panel - Exact Figma positioning */
+    .info-panel {
+      position: absolute;
+      left: 297px;
+      top: 358px;
+      width: 455px;
+      height: 518px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25), 
+                  0px 2px 4px -2px rgba(0, 0, 0, 0.1), 
+                  0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    /* Info Content - Exact Figma text layout */
+    .info-content {
+      position: absolute;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 400;
+      height: 280px;
+      line-height: normal;
+      left: 44px;
+      color: #ffffff;
+      text-align: left;
+      top: 66px;
+      width: 365px;
+      font-size: 0px;
+    }
+
+    .deploy-title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      margin-bottom: 0;
+      font-size: 24px;
+      line-height: normal;
+      display: block;
+    }
+
+    .spacing-24 {
+      display: block;
+      margin-bottom: 0;
+      font-size: 24px;
+      line-height: normal;
+      height: 24px;
+    }
+
+    .plant-specimen-title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      margin-bottom: 0;
+      font-size: 24px;
+      line-height: normal;
+      display: block;
+    }
+
+    .plant-specimen-type {
+      margin-bottom: 0;
+      font-size: 20px;
+      line-height: normal;
+      display: block;
+    }
+
+    .spacing-20 {
+      display: block;
+      margin-bottom: 0;
+      font-size: 20px;
+      line-height: normal;
+      height: 20px;
+    }
+
+    .spacing-32 {
+      display: block;
+      margin-bottom: 0;
+      font-size: 32px;
+      line-height: normal;
+      height: 32px;
+    }
+
+    .soil-quality-line {
+      margin-bottom: 0;
+      font-size: 24px;
+      line-height: normal;
+    }
+
+    .soil-quality-title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+    }
+
+    .soil-quality-value {
+      font-size: 20px;
+      line-height: normal;
+      display: block;
+    }
+
+    /* Progress Circle - Exact Figma positioning */
+    .progress-container {
+      position: absolute;
+      left: 331px;
+      top: 245px;
+      width: 76.576px;
+      height: 76.576px;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .progress-container.show {
+      opacity: 1;
+    }
+
+    .progress-circle {
+      position: absolute;
+      left: 0;
+      top: 12.373px;
+      width: 76.576px;
+      height: 76.576px;
+    }
+
+    .progress-bg-circle {
+      fill: none;
+      stroke: #E9EBE9;
+      stroke-width: 5;
+    }
+
+    .progress-arc-container {
+      position: absolute;
+      display: flex;
+      height: 76.18px;
+      align-items: center;
+      justify-content: center;
+      left: 12.813px;
+      top: 0;
+      width: 76.18px;
+    }
+
+    .progress-arc-inner {
+      flex: none;
+      transform: rotate(225deg);
+      width: 71.607px;
+      height: 36.152px;
+      position: relative;
+    }
+
+    .progress-path-svg {
+      position: absolute;
+      bottom: -6.915%;
+      left: -3.491%;
+      right: -3.491%;
+      top: 0;
+    }
+
+    .progress-path {
+      fill: none;
+      stroke: #747474;
+      stroke-width: 5;
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      transition: stroke-dashoffset 2s ease-in-out;
+    }
+
+    .progress-path.animate {
+      stroke-dashoffset: 27;
+    }
+
+    .progress-text {
+      position: absolute;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 400;
+      height: 26.696px;
+      line-height: 0;
+      left: 38.64px;
+      color: #ffffff;
+      font-size: 20px;
+      text-align: center;
+      top: 37.664px;
+      transform: translateX(-50%);
+      width: 50.583px;
+      line-height: normal;
+      opacity: 0 !important;
+      transition: opacity 0.8s ease;
+    }
+
+    .progress-text.animate-in {
+      opacity: 1 !important;
+    }
+
+    /* Voice Button - Exact Figma positioning */
+    .voice-button-container {
+      position: absolute;
+      left: 44px;
+      top: 420px;
+      width: 367px;
+      z-index: 6;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .voice-button-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .voice-button-border {
+      position: absolute;
+      height: 74px;
+      left: 0;
+      border-radius: 20px;
+      top: -25px;
+      width: 367px;
+      border: 2px solid #ffffff;
+      pointer-events: none;
+    }
+
+    .voice-button-text {
+      position: absolute;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      height: 23px;
+      line-height: 0;
+      left: 183.5px;
+      color: #ffffff;
+      font-size: 20px;
+      text-align: center;
+      top: 0;
+      transform: translateX(-50%);
+      width: 367px;
+      line-height: normal;
+      cursor: pointer;
+    }
+
+    .voice-button-text.listening {
+      animation: pulse 2s infinite;
+    }
+
+    .command {
+      font-weight: 400;
+    }
+
+
+
+    /* Typewriter Animation */
+    .typewriter {
+      opacity: 0;
+      position: relative;
+      display: inline-block;
+    }
+
+    .typewriter::after {
+      content: '|';
+      color: #ffffff;
+      font-weight: 100;
+      animation: blink 0.8s infinite;
+      position: absolute;
+      right: -8px;
+    }
+
+    .typewriter.typing-complete::after {
+      display: none;
+    }
+
+    .typewriter.animate {
+      opacity: 1;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+      50% { 
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1440px) {
+      .title-panel, .info-panel {
+        left: 200px;
+      }
+      
+      .planted-tree {
+        right: 150px;
+        width: 400px;
+        height: 600px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .title-panel, .info-panel {
+        left: 50px;
+      }
+      
+      .planted-tree {
+        right: 50px;
+        width: 350px;
+        height: 500px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Title Panel -->
+  <div class="title-panel">
+    <div class="title-content">
+      <div class="subtitle typewriter" id="subtitle">PROTOTYPE SCENE [04]</div>
+      <div class="title typewriter" id="title">MISSION STATUS</div>
+    </div>
+  </div>
+
+  <!-- Main Info Panel -->
+  <div class="info-panel">
+    <div class="info-content">
+      <p class="deploy-title typewriter" id="deployTitle">DEPLOY BIO-CAPSULE</p>
+      <p class="spacing-24">&nbsp;</p>
+      <p class="spacing-24">&nbsp;</p>
+      <p class="plant-specimen-title typewriter" id="specimenTitle">PLANT SPECIMEN:</p>
+      <p class="plant-specimen-type typewriter" id="specimenType">TREE CAPSULE</p>
+      <p class="spacing-20">&nbsp;</p>
+      <p class="spacing-32">&nbsp;</p>
+      <p class="soil-quality-line">
+        <span class="soil-quality-title typewriter" id="soilTitle">SOIL QUALITY:</span>
+        <span> </span>
+      </p>
+      <p class="soil-quality-value typewriter" id="soilValue">GOOD</p>
+    </div>
+
+    <!-- Progress Circle -->
+    <div class="progress-container">
+      <div class="progress-circle">
+        <svg
+          width="76.576"
+          height="76.576"
+          fill="none"
+          preserveAspectRatio="none"
+          viewBox="0 0 77 77"
+        >
+          <circle
+            class="progress-bg-circle"
+            cx="38.2881"
+            cy="38.2881"
+            r="35.7881"
+          />
+        </svg>
+      </div>
+      <div class="progress-arc-container">
+        <div class="progress-arc-inner">
+          <div class="progress-path-svg">
+            <svg
+              width="78"
+              height="39"
+              fill="none"
+              preserveAspectRatio="none"
+              viewBox="0 0 78 39"
+            >
+              <path
+                class="progress-path"
+                id="progressPath"
+                d="M74.6067 0C74.6067 19.9664 58.577 36.1523 38.8034 36.1523C19.0297 36.1523 3 19.9664 3 0"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <!-- Voice Button -->
+    <div class="voice-button-container" id="voiceButtonContainer">
+      <div class="voice-button-border"></div>
+      <div class="voice-button-text" id="voicePrompt">
+        <span>SAY </span>
+        <span class="command">"GO TO THE CAVE"</span>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    // Jump Animation Function
+    function astronautJump() {
+      const astronaut = document.querySelector('.astronaut');
+      if (!astronaut) return;
+      
+      const currentSrc = astronaut.style.backgroundImage || astronaut.src;
+      let baseImage, jumpImage;
+      
+      // Determine which images to use based on current astronaut (Scene 4 uses back)
+      baseImage = '../assets/Astronaut/astronaut-back-small.png';
+      jumpImage = '../assets/Astronaut/astronaut-jump-back-small.png';
+      
+      // Jump animation sequence
+      if (astronaut.style.backgroundImage) {
+        // For astronauts using background-image
+        astronaut.style.backgroundImage = `url('${jumpImage}')`;
+        setTimeout(() => {
+          astronaut.style.backgroundImage = `url('${baseImage}')`;
+        }, 500);
+      } else {
+        // For astronauts using src attribute
+        astronaut.src = jumpImage;
+        setTimeout(() => {
+          astronaut.src = baseImage;
+        }, 500);
+      }
+      
+      // Add jump animation class
+      astronaut.classList.add('jumping');
+      setTimeout(() => {
+        astronaut.classList.remove('jumping');
+      }, 500);
+    }
+
+    // Speech recognition setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase().trim();
+        console.log('Heard:', command);
+        
+        // Check for jump command first
+        if (command.includes('jump')) {
+          console.log('Jump command recognized');
+          astronautJump();
+          return;
+        }
+        
+        if (command.includes('go to the cave') || command.includes('cave')) {
+          // Navigate to next scene (cave scene)
+          window.location.href = 'scene5-cave.html';
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        stopListening();
+      };
+
+      recognition.onend = function() {
+        if (isListening) {
+          setTimeout(() => {
+            if (isListening) recognition.start();
+          }, 100);
+        }
+      };
+    }
+
+    function startListening() {
+      if (recognition && !isListening) {
+        isListening = true;
+        recognition.start();
+        document.getElementById('voicePrompt').classList.add('listening');
+      }
+    }
+
+    function stopListening() {
+      if (recognition && isListening) {
+        isListening = false;
+        recognition.stop();
+        document.getElementById('voicePrompt').classList.remove('listening');
+      }
+    }
+
+    // Typewriter Animation Function (same as other scenes)
+    function typeWriter(element, text, speed = 30) {
+      element.innerHTML = '';
+      element.style.opacity = '1';
+      element.classList.add('typing');
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          setTimeout(() => {
+            element.classList.add('typing-complete');
+          }, 200);
+        }
+      }
+      type();
+    }
+
+    // Counter Animation Function (like Scene 1)
+    function animateCounter(element, start, end, duration) {
+      let startTime = null;
+      
+      function animate(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        
+        const currentValue = Math.floor(start + (end - start) * progress);
+        element.textContent = currentValue + '%';
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+
+    function initTypewriterAnimations() {
+      const typewriterElements = [
+        { element: document.getElementById('subtitle'), delay: 200, text: 'PROTOTYPE SCENE [04]' },
+        { element: document.getElementById('title'), delay: 600, text: 'MISSION STATUS' },
+        { element: document.getElementById('deployTitle'), delay: 1000, text: 'DEPLOY BIO-CAPSULE' },
+        { element: document.getElementById('specimenTitle'), delay: 1400, text: 'PLANT SPECIMEN:' },
+        { element: document.getElementById('specimenType'), delay: 1800, text: 'TREE CAPSULE' },
+        { element: document.getElementById('soilTitle'), delay: 2200, text: 'SOIL QUALITY:' },
+        { element: document.getElementById('soilValue'), delay: 2600, text: 'GOOD' }
+      ];
+
+      // Clear initial content
+      typewriterElements.forEach(({ element }) => {
+        if (element) {
+          element.innerHTML = '';
+        }
+      });
+
+      // Start typing animations
+      typewriterElements.forEach(({ element, delay, text }) => {
+        if (element) {
+          setTimeout(() => {
+            typeWriter(element, text, 40);
+          }, delay);
+        }
+      });
+    }
+
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', () => {
+      initTypewriterAnimations();
+      
+      // Show progress container and animate after ALL text is done
+      setTimeout(() => {
+        // First show the entire progress container
+        document.querySelector('.progress-container').classList.add('show');
+        
+        // Then start the progress circle animation
+        document.getElementById('progressPath').classList.add('animate');
+        
+        // And animate the counter
+        const progressText = document.getElementById('progressText');
+        progressText.classList.add('animate-in');
+        animateCounter(progressText, 0, 78, 2000);
+      }, 3000); // After all text completes
+
+
+
+      // Show voice button container after all animations
+      setTimeout(() => {
+        document.getElementById('voiceButtonContainer').classList.add('show');
+      }, 4500);
+
+      // Auto-start listening after button animation
+      setTimeout(() => {
+        startListening();
+      }, 5500);
+    });
+
+    // Handle page visibility change to manage speech recognition
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopListening();
+      } else {
+        setTimeout(startListening, 500);
+      }
+    });
+
+    // ESC key to reset to game launcher
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        window.location.href = '../game-launcher.html';
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopListening();
+    });
+  </script>
+</body>
+</html> 

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Briefing - AI Speech Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #000000;
+      font-family: 'Orbitron', monospace;
+      color: white;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .background {
+      position: absolute;
+      top: -100px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh + 200px);
+      background: url('../assets/Backgrounds/bg-landing-scene0-small.png') center center/cover no-repeat;
+      z-index: 1;
+    }
+
+    .astronaut {
+      position: absolute;
+      right: 10vw;
+      bottom: 8vh;
+      width: 25vw;
+      max-width: 472px;
+      min-width: 300px;
+      height: auto;
+      z-index: 3;
+      filter: drop-shadow(0 8px 32px rgba(0,0,0,0.3));
+      opacity: 0;
+      transform: translateX(100px) scale(0.8);
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .astronaut.animate {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      animation: astronautFloat 4s ease-in-out infinite 1.5s;
+    }
+
+    @keyframes astronautFloat {
+      0%, 100% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+      50% {
+        transform: translateX(0) translateY(-8px) scale(1);
+      }
+    }
+
+    .astronaut.jumping {
+      animation: jumpAnimation 0.5s ease-in-out;
+    }
+
+    @keyframes jumpAnimation {
+      0% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+      50% {
+        transform: translateX(0) translateY(-40px) scale(1.1);
+      }
+      100% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+    }
+
+    .ui-container {
+      position: absolute;
+      left: 10vw;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+      max-width: 455px;
+      width: 90vw;
+    }
+
+    .mission-status {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      padding: 31px 44px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 
+        0px 2px 4px -2px rgba(0,0,0,0.1),
+        0px 4px 6px -1px rgba(0,0,0,0.1),
+        inset 0px 0px 8px 0px rgba(255,255,255,0.25);
+    }
+
+    .mission-status .subtitle {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      opacity: 0;
+    }
+
+    .mission-status .title {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.2;
+      opacity: 0;
+    }
+
+    .mission-brief {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      padding: 48px 44px;
+      box-shadow: 
+        0px 2px 4px -2px rgba(0,0,0,0.1),
+        0px 4px 6px -1px rgba(0,0,0,0.1),
+        inset 0px 0px 8px 0px rgba(255,255,255,0.25);
+    }
+
+    .mission-text {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 40px;
+    }
+
+    .mission-question {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 30px;
+    }
+
+    .voice-prompt {
+      border: 2px solid #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .voice-prompt.show {
+      opacity: 1;
+      transform: translateY(0);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .voice-prompt:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(0) scale(1.02);
+    }
+
+    .voice-prompt.listening {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.6); }
+      100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
+    }
+
+    .voice-prompt-text {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .voice-prompt-text .say {
+      font-weight: 700;
+    }
+
+    .voice-prompt-text .command {
+      font-weight: 400;
+    }
+
+    .status-message {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .status-message.show {
+      opacity: 1;
+    }
+
+    /* Responsive design */
+    @media (max-width: 1200px) {
+      .ui-container {
+        left: 5vw;
+        max-width: 400px;
+      }
+      
+      .astronaut {
+        right: 5vw;
+        width: 30vw;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .ui-container {
+        left: 5vw;
+        right: 5vw;
+        width: auto;
+        max-width: none;
+      }
+      
+      .astronaut {
+        right: 5vw;
+        bottom: 5vh;
+        width: 35vw;
+        min-width: 200px;
+      }
+      
+      .mission-status .title {
+        font-size: 28px;
+      }
+      
+      .mission-text,
+      .mission-question {
+        font-size: 20px;
+      }
+      
+      .voice-prompt-text {
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .mission-status,
+      .mission-brief {
+        padding: 30px 20px;
+      }
+      
+      .mission-status .title {
+        font-size: 24px;
+      }
+      
+      .mission-text,
+      .mission-question {
+        font-size: 18px;
+      }
+      
+      .voice-prompt-text {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+  
+  <img class="astronaut" src="../assets/Astronaut/astronaut-front-small.png" alt="Astronaut on alien planet">
+  
+  <div class="ui-container">
+    <div class="mission-status">
+      <div class="subtitle typewriter" id="subtitle">PROTOTYPE SCENE [00]</div>
+      <div class="title typewriter" id="title">MISSION STATUS</div>
+    </div>
+    
+    <div class="mission-brief">
+      <div class="mission-text typewriter" id="missionText">
+        USE YOUR VOICE TO EXPLORE THE PLANET AND MAKE IT SAFE.
+      </div>
+      
+      <div class="mission-question typewriter" id="missionQuestion">
+        DO YOU ACCEPT THE MISSION?
+      </div>
+      
+      <div class="voice-prompt" id="voicePrompt">
+        <div class="voice-prompt-text">
+          <span class="say">SAY </span>
+          <span class="command">"YES"</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="status-message" id="statusMessage"></div>
+
+  <script>
+    // Speech Recognition Setup
+    let recognition;
+    let isListening = false;
+    
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+    } else if ('SpeechRecognition' in window) {
+      recognition = new SpeechRecognition();
+    }
+    
+    const voicePrompt = document.getElementById('voicePrompt');
+    const statusMessage = document.getElementById('statusMessage');
+    
+    function showStatus(message) {
+      statusMessage.textContent = message;
+      statusMessage.classList.add('show');
+      setTimeout(() => {
+        statusMessage.classList.remove('show');
+      }, 3000);
+    }
+    
+    function startListening() {
+      if (!recognition) {
+        showStatus('Speech recognition not supported in this browser');
+        return;
+      }
+      
+      if (isListening) return;
+      
+      isListening = true;
+      voicePrompt.classList.add('listening');
+      recognition.start();
+      showStatus('Listening for "YES"...');
+    }
+    
+    function stopListening() {
+      if (recognition && isListening) {
+        isListening = false;
+        voicePrompt.classList.remove('listening');
+        recognition.stop();
+      }
+    }
+    
+    // Jump Animation Function
+    function astronautJump() {
+      const astronaut = document.querySelector('.astronaut');
+      if (!astronaut) return;
+      
+      const currentSrc = astronaut.style.backgroundImage || astronaut.src;
+      let baseImage, jumpImage;
+      
+      // Determine which images to use based on current astronaut
+      if (currentSrc.includes('astronaut-front-small') || currentSrc.includes('front')) {
+        baseImage = '../assets/Astronaut/astronaut-front-small.png';
+        jumpImage = '../assets/Astronaut/astronaut-jump-front-small.png';
+      } else if (currentSrc.includes('astronaut-back-small') || currentSrc.includes('back')) {
+        baseImage = '../assets/Astronaut/astronaut-back-small.png';
+        jumpImage = '../assets/Astronaut/astronaut-jump-back-small.png';
+      } else {
+        // Default to front if unclear
+        baseImage = '../assets/Astronaut/astronaut-front-small.png';
+        jumpImage = '../assets/Astronaut/astronaut-jump-front-small.png';
+      }
+      
+      // Jump animation sequence
+      if (astronaut.style.backgroundImage) {
+        // For astronauts using background-image
+        astronaut.style.backgroundImage = `url('${jumpImage}')`;
+        setTimeout(() => {
+          astronaut.style.backgroundImage = `url('${baseImage}')`;
+        }, 500);
+      } else {
+        // For astronauts using src attribute
+        astronaut.src = jumpImage;
+        setTimeout(() => {
+          astronaut.src = baseImage;
+        }, 500);
+      }
+      
+      // Add jump animation class
+      astronaut.classList.add('jumping');
+      setTimeout(() => {
+        astronaut.classList.remove('jumping');
+      }, 500);
+    }
+
+    function handleSpeechResult(transcript) {
+      const lowerTranscript = transcript.toLowerCase().trim();
+      console.log('Heard:', transcript);
+      
+      // Check for jump command first
+      if (lowerTranscript.includes('jump')) {
+        showStatus('Jumping!');
+        astronautJump();
+        // Continue listening after jump
+        setTimeout(startListening, 1000);
+        return;
+      }
+      
+      if (lowerTranscript.includes('yes')) {
+        showStatus('Mission accepted! Proceeding to environmental scan...');
+        setTimeout(() => {
+          // Navigate to next scene
+          window.location.href = 'scene1-environmental-scan.html';
+        }, 2000);
+      } else {
+        showStatus(`Heard: "${transcript}". Please say "YES" to accept the mission.`);
+        // Continue listening
+        setTimeout(startListening, 1000);
+      }
+    }
+    
+    if (recognition) {
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        console.log('Speech recognition started');
+      };
+      
+      recognition.onend = () => {
+        console.log('Speech recognition ended');
+        if (isListening) {
+          isListening = false;
+          voicePrompt.classList.remove('listening');
+        }
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        stopListening();
+        if (event.error === 'no-speech') {
+          showStatus('No speech detected. Click to try again.');
+        } else {
+          showStatus(`Error: ${event.error}. Click to try again.`);
+        }
+      };
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        handleSpeechResult(transcript);
+      };
+    }
+    
+    // Click to start listening
+    voicePrompt.addEventListener('click', () => {
+      if (!isListening) {
+        startListening();
+      }
+    });
+    
+    function typeWriter(element, text, speed = 30) {
+      // Clear the element and prepare for typing
+      element.innerHTML = '';
+      element.style.opacity = '1';
+      element.classList.add('typing');
+      let i = 0;
+      
+      function type() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          // Typing complete, remove cursor after a brief delay
+          setTimeout(() => {
+            element.classList.add('typing-complete');
+          }, 200);
+        }
+      }
+      type();
+    }
+
+    function initTypewriterAnimations() {
+      // Get all typewriter elements and store their text, then clear them
+      const typewriterElements = [
+        { element: document.getElementById('subtitle'), delay: 200, text: 'PROTOTYPE SCENE [00]' },
+        { element: document.getElementById('title'), delay: 800, text: 'MISSION STATUS' },
+        { element: document.getElementById('missionText'), delay: 1400, text: 'USE YOUR VOICE TO EXPLORE THE PLANET AND MAKE IT SAFE.' },
+        { element: document.getElementById('missionQuestion'), delay: 2000, text: 'DO YOU ACCEPT THE MISSION?' }
+      ];
+
+      // Clear all text initially
+      typewriterElements.forEach(({ element }) => {
+        if (element) {
+          element.innerHTML = '';
+        }
+      });
+
+      // Start typing animations with delays
+      typewriterElements.forEach(({ element, delay, text }) => {
+        if (element) {
+          setTimeout(() => {
+            typeWriter(element, text, 40);
+          }, delay);
+        }
+      });
+    }
+
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', () => {
+      initTypewriterAnimations();
+      
+      // Animate astronaut in after a short delay
+      setTimeout(() => {
+        document.querySelector('.astronaut').classList.add('animate');
+      }, 500);
+      
+      // Show voice prompt after all text has typed
+      setTimeout(() => {
+        document.getElementById('voicePrompt').classList.add('show');
+      }, 3000);
+      
+      // Auto-start listening after button animation
+      setTimeout(() => {
+        startListening();
+      }, 4000); // Wait for typewriter animations to complete
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Space') {
+        event.preventDefault();
+        if (!isListening) {
+          startListening();
+        }
+      }
+      // ESC key to reset to game launcher
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        window.location.href = '../game-launcher.html';
+      }
+      // For testing - press Y to simulate "yes"
+      if (event.code === 'KeyY' && event.ctrlKey) {
+        handleSpeechResult('yes');
+      }
+    });
+  </script>
+</body>
+</html> 

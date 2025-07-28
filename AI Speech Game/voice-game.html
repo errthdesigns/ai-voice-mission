@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Speech Game - Voice Driven Prototype</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: #18181b;
+      overflow: hidden;
+      font-family: 'Orbitron', 'Inter', 'Segoe UI', Arial, sans-serif;
+      transition: background-image 1s cubic-bezier(.4,1.6,.4,1);
+    }
+    .scene-bg {
+      position: fixed;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.8s cubic-bezier(.4,1.6,.4,1);
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .scene-bg.active { opacity: 1; }
+    .astronaut {
+      position: absolute;
+      z-index: 2;
+      opacity: 0;
+      transition: left 1.5s cubic-bezier(.4,1.6,.4,1), bottom 1.5s cubic-bezier(.4,1.6,.4,1), width 0.7s, opacity 0.7s;
+      background: none;
+      pointer-events: none;
+    }
+    .astronaut.active { opacity: 1; }
+    .scene-ui-img {
+      position: absolute;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.7s cubic-bezier(.4,1.6,.4,1), transform 0.7s cubic-bezier(.4,1.6,.4,1);
+      pointer-events: none;
+      user-select: none;
+      object-fit: contain;
+    }
+    .scene-ui-img.active {
+      opacity: 1;
+      transform: scale(1.01);
+    }
+    .typewriter {
+      display: inline-block;
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 2px solid #fff;
+      animation: typing 1.5s steps(30, end), blink-caret 0.7s step-end infinite;
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    @keyframes blink-caret {
+      from, to { border-color: transparent; }
+      50% { border-color: #fff; }
+    }
+    .glitch-btn {
+      position: relative;
+      color: #fff;
+      background: rgba(255,255,255,0.18);
+      border: 2.5px solid rgba(255,255,255,0.32);
+      border-radius: 48px;
+      padding: 18px 48px;
+      font-family: 'Orbitron', 'Inter', Arial, sans-serif;
+      font-size: 1.22em;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      box-shadow: 0 2px 16px rgba(255,255,255,0.10);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      text-shadow: 0 1.5px 8px rgba(255,255,255,0.10);
+      overflow: hidden;
+    }
+    .glitch-btn:after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent 0%, #fff 50%, transparent 100%);
+      opacity: 0.1;
+      pointer-events: none;
+      animation: glitch 1.2s infinite linear alternate;
+    }
+    @keyframes glitch {
+      0% { left: -10%; }
+      100% { left: 110%; }
+    }
+    .glass-popup, .glass-pill, .glass-ui, .confirmation {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      color: #fff;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.18), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+      background: rgba(255,255,255,0.22);
+      border: 1.5px solid rgba(255,255,255,0.32);
+      outline: 1.5px solid rgba(255,255,255,0.32);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      transition: opacity 0.7s, background 1s, box-shadow 0.4s, outline 0.4s;
+      opacity: 0;
+      pointer-events: none;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+    .glass-popup.active, .glass-pill.active, .glass-ui.active, .confirmation.active {
+      opacity: 1;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.22), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+      background: rgba(255,255,255,0.28);
+      outline: 1.5px solid rgba(255,255,255,0.32);
+    }
+    .glass-popup {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 520px;
+      height: 320px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 80px;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.18), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+      border: 2.5px solid rgba(255,255,255,0.32);
+      outline: 2.5px solid rgba(255,255,255,0.32);
+      backdrop-filter: blur(36px) saturate(180%);
+      -webkit-backdrop-filter: blur(36px) saturate(180%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      color: #fff;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      padding: 0 48px;
+      gap: 18px;
+      font-size: 1.18em;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s, background 1s, box-shadow 0.4s, outline 0.4s;
+    }
+    .glass-popup.active {
+      opacity: 1;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.22), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+      background: rgba(255,255,255,0.28);
+      outline: 2.5px solid rgba(255,255,255,0.32);
+    }
+    .glass-popup .scene1-header {
+      font-size: 2.1em;
+      font-weight: 400;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-bottom: 18px;
+      margin-top: 0;
+      text-shadow: 0 1.5px 8px rgba(255,255,255,0.12);
+    }
+    .glass-popup .scene1-sub {
+      font-size: 1.18em;
+      font-weight: 300;
+      color: #fff;
+      margin-bottom: 18px;
+      margin-top: 0;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1.5px 8px rgba(255,255,255,0.10);
+    }
+    .glass-popup .scene1-btn {
+      margin-top: 24px;
+      font-size: 1.22em;
+      font-weight: 400;
+      color: #fff;
+      background: rgba(255,255,255,0.18);
+      border: 2.5px solid rgba(255,255,255,0.32);
+      outline: 2.5px solid rgba(255,255,255,0.18);
+      border-radius: 48px;
+      padding: 18px 48px;
+      box-shadow: 0 2px 16px rgba(255,255,255,0.10);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1.5px 8px rgba(255,255,255,0.10);
+      border-width: 2px;
+      border-style: solid;
+      border-color: rgba(255,255,255,0.32);
+    }
+    .glass-popup .scene1-btn:active {
+      background: rgba(255,255,255,0.32);
+      color: #0078ff;
+    }
+    .glass-ui {
+      top: 36px;
+      min-width: 340px;
+      border-radius: 40px;
+      padding: 28px 36px 22px 36px;
+      font-size: 1.18em;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.18), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+    }
+    .glass-pill {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 440px;
+      height: 340px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 120px;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.18), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+      border: 2.5px solid rgba(255,255,255,0.32);
+      outline: 2.5px solid rgba(255,255,255,0.32);
+      backdrop-filter: blur(36px) saturate(180%);
+      -webkit-backdrop-filter: blur(36px) saturate(180%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      color: #fff;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      padding: 0 48px;
+      gap: 32px;
+      font-size: 1.18em;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s, background 1s, box-shadow 0.4s, outline 0.4s;
+    }
+    .glass-pill.active {
+      opacity: 1;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px 0 rgba(255,255,255,0.22), 0 1.5px 0 0 rgba(255,255,255,0.25) inset;
+      background: rgba(255,255,255,0.28);
+      outline: 2.5px solid rgba(255,255,255,0.32);
+    }
+    .capsule-img {
+      width: 120px;
+      height: 220px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 12px rgba(0,0,0,0.10));
+      background: none;
+      margin-bottom: 18px;
+    }
+    .pill-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      text-align: center;
+      width: 100%;
+    }
+    .pill-content .title {
+      font-size: 1.45em;
+      font-weight: 400;
+      margin-bottom: 0;
+      color: #fff;
+      letter-spacing: 0.04em;
+      text-shadow: 0 1.5px 8px rgba(255,255,255,0.12);
+    }
+    .pill-content .specimen {
+      font-size: 1.13em;
+      color: #fff;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+    .pill-content .prompt {
+      font-size: 1.18em;
+      background: rgba(255,255,255,0.18);
+      border-radius: 32px;
+      padding: 14px 36px;
+      font-weight: 300;
+      box-shadow: 0 2px 8px rgba(255,255,255,0.10);
+      backdrop-filter: blur(8px);
+      display: inline-block;
+      color: #fff;
+      letter-spacing: 0.01em;
+      border: 1.5px solid rgba(255,255,255,0.18);
+      margin-top: 10px;
+    }
+    .glass-btn {
+      margin-top: 24px;
+      font-size: 1.22em;
+      font-weight: 400;
+      color: #fff;
+      background: rgba(255,255,255,0.18);
+      border: 2.5px solid rgba(255,255,255,0.32);
+      outline: 2.5px solid rgba(255,255,255,0.18);
+      border-radius: 48px;
+      padding: 18px 48px;
+      box-shadow: 0 2px 16px rgba(255,255,255,0.10);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1.5px 8px rgba(255,255,255,0.10);
+    }
+    .glass-btn:active {
+      background: rgba(255,255,255,0.32);
+      color: #0078ff;
+    }
+    .confirmation {
+      top: 36px;
+      min-width: 340px;
+      border-radius: 40px;
+      color: #eaffea;
+      padding: 28px 36px 22px 36px;
+      font-size: 1.18em;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      box-shadow: 0 8px 32px 0 rgba(80,255,80,0.18);
+      animation: glowPulse 2s infinite alternate;
+      background: rgba(180,255,180,0.13);
+      border: 1.5px solid rgba(255,255,255,0.18);
+    }
+    @keyframes glowPulse {
+      0% { box-shadow: 0 0 32px 0 #aaffc0cc; }
+      100% { box-shadow: 0 0 64px 0 #aaffc0cc; }
+    }
+    .capsule-plant {
+      position: absolute;
+      left: 50%;
+      bottom: 24vh;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 180px;
+      z-index: 5;
+      filter: drop-shadow(0 0 32px #aaffc0cc);
+      animation: floatUpDown 2.2s ease-in-out infinite alternate;
+      opacity: 0;
+      transition: opacity 1s;
+      pointer-events: none;
+    }
+    @keyframes floatUpDown {
+      0% { bottom: 24vh; }
+      100% { bottom: 28vh; }
+    }
+    /* Scene 6: Tree Landscape */
+    .tree-scene {
+      position: absolute;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: url('./assets/bg-tree-landscape.png') center center/cover no-repeat, #18181b;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s;
+    }
+    .tree-scene.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .tree-scene .astronaut {
+      left: 60vw !important;
+      bottom: 14vh !important;
+      width: 160px;
+      z-index: 3;
+      transition: left 1.5s cubic-bezier(.4,1.6,.4,1);
+    }
+    .tree-scene .astronaut.at-tree {
+      left: 60vw !important;
+    }
+    .tree-scene .tree {
+      display: none;
+    }
+    @media (max-width: 600px) {
+      .astronaut {
+        width: 140px;
+        left: 85vw;
+      }
+      .glass-popup {
+        width: 210px;
+        height: 210px;
+        padding: 0 8px;
+      }
+      .glass-ui, .confirmation {
+        min-width: 180px;
+        padding: 12px 8px 10px 8px;
+        font-size: 1em;
+      }
+      .glass-pill {
+        width: 98vw;
+        height: 220px;
+        padding: 0 8vw;
+        gap: 10px;
+      }
+      .capsule-img {
+        width: 60px;
+        height: 110px;
+      }
+      .pill-content .title {
+        font-size: 1.1em;
+      }
+      .glass-btn {
+        font-size: 1em;
+        padding: 10px 18px;
+      }
+      .tree-scene .astronaut {
+        width: 60px;
+      }
+      .tree-scene .tree {
+        width: 50px;
+      }
+    }
+    #voice-status {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.18);
+      color: #fff;
+      border-radius: 12px;
+      padding: 8px 18px;
+      font-size: 1.05em;
+      z-index: 100;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      min-width: 180px;
+      text-align: center;
+      opacity: 0.95;
+      pointer-events: none;
+    }
+    @media (max-width: 600px) {
+      .scene-ui-img {
+        max-width: 98vw;
+        max-height: 60vh;
+        border-radius: 24px;
+      }
+    }
+    @media (max-width: 900px) {
+      .astronaut { width: 140px !important; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Ensure UI image elements exist for each scene BEFORE any scene function is called
+    const uiScenes = [0,1,2,3,4,5,6,7];
+    const uiVariants = ['large','large','medium','large','medium','medium','large','large'];
+    uiScenes.forEach((i, idx) => {
+      if (!document.getElementById(`ui-scene${i}`)) {
+        const img = document.createElement('img');
+        img.className = 'scene-ui-img';
+        img.id = `ui-scene${i}`;
+        img.src = `./assets/UI Components/ui-scene${i}-${uiVariants[idx]}.png`;
+        img.alt = `Scene ${i} UI`;
+        img.style.display = 'none';
+        document.body.appendChild(img);
+      }
+    });
+  </script>
+  <!-- Astronaut (front or back, swapped by JS) -->
+  <img class="astronaut" id="astronaut" src="./assets/Astronaut/front.png" alt="Astronaut">
+  <!-- UI overlays for each scene as images -->
+  <img class="scene-ui-img" id="ui-scene1" src="./assets/UI/ui-scene1.png" alt="Scene 1 UI" style="display:none;" />
+  <img class="scene-ui-img" id="ui-scene2" src="./assets/UI/ui-scene2.png" alt="Scene 2 UI" style="display:none;" />
+  <img class="scene-ui-img" id="ui-scene3" src="./assets/UI/ui-scene3a.png" alt="Scene 3 UI" style="display:none;" />
+  <img class="scene-ui-img" id="ui-scene4" src="./assets/UI/ui-scene4.png" alt="Scene 4 UI" style="display:none;" />
+  <img class="scene-ui-img" id="ui-scene5" src="./assets/UI/ui-scene5.png" alt="Scene 5 UI" style="display:none;" />
+  <div class="confirmation" id="scene-confirmation">
+    Tree planted!<br>
+    Life +1<br>
+    Oxygen level increased
+  </div>
+  <!-- Scene 0 UI overlay text (HTML, not image) -->
+  <div id="scene0-overlay" style="display:none; position:absolute; left:0; top:0; width:100vw; height:100vh; z-index:30; pointer-events:none;">
+    <div style="position:absolute; left:8vw; top:8vh; width:36vw;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:2.2em;font-weight:700;color:#fff;letter-spacing:0.04em;text-shadow:0 2px 12px rgba(0,0,0,0.18);margin-bottom:2.5vh;">MISSION STATUS</div>
+      <div id="scene0-typewriter" style="font-family:'Orbitron',sans-serif;font-size:1.15em;font-weight:400;color:#fff;letter-spacing:0.02em;line-height:1.5;margin-bottom:2.5vh;"></div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1.15em;font-weight:400;color:#fff;letter-spacing:0.02em;line-height:1.5;margin-bottom:2.5vh;">DO YOU ACCEPT THE MISSION?</div>
+      <div style="margin-top:2.5vh;">
+        <span class="glitch-btn" style="pointer-events:auto;">SAY "YES"</span>
+      </div>
+    </div>
+  </div>
+  <!-- Scene 1 UI overlay text (HTML, not image) -->
+  <div id="scene1-overlay" style="display:none; position:absolute; left:0; top:0; width:100vw; height:100vh; z-index:30; pointer-events:none;">
+    <div style="position:absolute; left:8vw; top:8vh; width:36vw;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:2.2em;font-weight:700;color:#fff;letter-spacing:0.04em;text-shadow:0 2px 12px rgba(0,0,0,0.18);margin-bottom:2.5vh;">MISSION STATUS</div>
+      <div id="scene1-typewriter" style="font-family:'Orbitron',sans-serif;font-size:1.15em;font-weight:400;color:#fff;letter-spacing:0.02em;line-height:1.5;margin-bottom:2.5vh;"></div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1.15em;font-weight:400;color:#fff;letter-spacing:0.02em;line-height:1.5;margin-bottom:2.5vh;">SOIL QUALITY: VERY BAD</div>
+      <div style="margin-top:2.5vh;">
+        <span class="glitch-btn" style="pointer-events:auto;">SAY "WALK TO THE WATER"</span>
+      </div>
+    </div>
+  </div>
+  <!-- Scene 2 UI overlay text (HTML, not image) -->
+  <div id="scene2-overlay" style="display:none; position:absolute; left:0; top:0; width:100vw; height:100vh; z-index:30; pointer-events:none;">
+    <div style="position:absolute; left:8vw; top:8vh; width:36vw;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:2.2em;font-weight:700;color:#fff;letter-spacing:0.04em;text-shadow:0 2px 12px rgba(0,0,0,0.18);margin-bottom:2.5vh;">MISSION STATUS</div>
+      <div id="scene2-typewriter" style="font-family:'Orbitron',sans-serif;font-size:1.15em;font-weight:400;color:#fff;letter-spacing:0.02em;line-height:1.5;margin-bottom:2.5vh;"></div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1.15em;font-weight:400;color:#fff;letter-spacing:0.02em;line-height:1.5;margin-bottom:2.5vh;">LETS GO!</div>
+      <div style="margin-top:2.5vh;">
+        <span class="glitch-btn" style="pointer-events:auto;">SAY "OPEN INVENTORY"</span>
+      </div>
+    </div>
+  </div>
+  <!-- Scene 6: Tree Landscape -->
+  <div class="tree-scene" id="scene-tree-landscape">
+    <img class="astronaut" id="tree-astronaut" src="./assets/Astronaut/back.png" alt="Astronaut">
+  </div>
+  <div id="voice-status"></div>
+  <script>
+    // Scene configuration
+    const scenes = [
+      // Scene 0: Intro
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene0.png',
+        ui: 'assets/UI Components/ui-scene0-large.png',
+        astronaut: null,
+        astronautPos: null,
+        voice: [
+          { trigger: ['next', 'yes'], next: 1 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 1: Landing
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene1.png',
+        ui: 'assets/UI Components/ui-scene1-large.png',
+        astronaut: 'assets/Astronaut/front.png',
+        astronautPos: { left: '50vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['walk to the water'], next: 2 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 2: Water Area
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene2.png',
+        ui: 'assets/UI Components/ui-scene2-medium.png',
+        astronaut: 'assets/Astronaut/back.png',
+        astronautPos: { left: '50vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['open inventory'], next: 3 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 3: Inventory
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene3.png',
+        ui: 'assets/UI Components/ui-scene3-large.png',
+        astronaut: 'assets/Astronaut/back.png',
+        astronautPos: { left: '72vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['plant the tree'], next: 4 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 4: Tree Planted
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene4.png',
+        ui: 'assets/UI Components/ui-scene4-medium.png',
+        astronaut: 'assets/Astronaut/back.png',
+        astronautPos: { left: '72vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['go to the cave'], next: 5 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 5: Cave Entrance
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene5.png',
+        ui: 'assets/UI Components/ui-scene5-medium.png',
+        astronaut: 'assets/Astronaut/back.png',
+        astronautPos: { left: '72vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['open the tool box'], next: 6 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 6: Toolbox
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene6.png',
+        ui: 'assets/UI Components/ui-scene6-large.png',
+        astronaut: 'assets/Astronaut/back.png',
+        astronautPos: { left: '72vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['use the spade'], next: 7 },
+          { trigger: ['restart'], next: 0 }
+        ],
+        idle: 20000
+      },
+      // Scene 7: Mission Complete
+      {
+        bg: 'assets/Backgrounds/bg-landing-scene7.png',
+        ui: 'assets/UI Components/ui-scene7-large.png',
+        astronaut: 'assets/Astronaut/back.png',
+        astronautPos: { left: '72vw', bottom: '8vh', width: '260px' },
+        voice: [
+          { trigger: ['end', 'restart'], next: 0 }
+        ],
+        idle: 20000
+      }
+    ];
+    // Speech recognition setup
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+    } else if ('SpeechRecognition' in window) {
+      recognition = new SpeechRecognition();
+    }
+    // Scene state
+    let currentSceneIndex = 0;
+    let currentBgElement = document.body;
+    let currentUiElement = null;
+    let currentAstronautElement = document.getElementById('astronaut');
+    const astronaut = document.getElementById('astronaut');
+    const capsulePlant = document.getElementById('capsule-plant');
+    const voiceStatus = document.getElementById('voice-status');
+    const sceneConfirmation = document.getElementById('scene-confirmation');
+    const treeScene = document.getElementById('scene-tree-landscape');
+
+    // Hide all overlays and backgrounds
+    function hideAll() {
+      document.querySelectorAll('.scene-ui-img').forEach(el => {
+        if (el && el.style) el.style.display = 'none';
+      });
+      document.querySelectorAll('.tree-scene, .confirmation').forEach(el => {
+        if (el && el.classList) el.classList.remove('active');
+      });
+      if (capsulePlant) capsulePlant.style.opacity = 0;
+      if (currentUiElement) currentUiElement.classList.remove('active');
+      if (currentBgElement) currentBgElement.classList.remove('active');
+      if (currentAstronautElement) currentAstronautElement.classList.remove('active');
+    }
+
+    // Show scene by index
+    function showScene(index) {
+      if (index < 0 || index >= scenes.length) return;
+      const scene = scenes[index];
+      hideAll();
+
+      // Set background
+      const newBgElement = document.createElement('img');
+      newBgElement.className = 'scene-bg active';
+      newBgElement.src = scene.bg;
+      newBgElement.alt = `Background for Scene ${index}`;
+      document.body.appendChild(newBgElement);
+      currentBgElement = newBgElement;
+
+      // Set UI overlay
+      let newUiElement = document.querySelector(`img.scene-ui-img[src='${scene.ui}']`);
+      if (!newUiElement) {
+        newUiElement = document.createElement('img');
+        newUiElement.className = 'scene-ui-img active';
+        newUiElement.src = scene.ui;
+        newUiElement.alt = `Scene ${index} UI`;
+        document.body.appendChild(newUiElement);
+      }
+      newUiElement.classList.add('active');
+      currentUiElement = newUiElement;
+
+      // Set astronaut
+      if (scene.astronaut) {
+        const newAstronautElement = document.createElement('img');
+        newAstronautElement.className = 'astronaut active';
+        newAstronautElement.src = scene.astronaut;
+        newAstronautElement.alt = `Astronaut for Scene ${index}`;
+        if (scene.astronautPos) {
+          newAstronautElement.style.left = scene.astronautPos.left;
+          newAstronautElement.style.bottom = scene.astronautPos.bottom;
+          newAstronautElement.style.width = scene.astronautPos.width;
+        }
+        document.body.appendChild(newAstronautElement);
+        currentAstronautElement = newAstronautElement;
+      }
+
+      // Scene 0: overlay text and no astronaut
+      if(index === 0) {
+        document.getElementById('scene0-overlay').style.display = 'block';
+        // Typewriter effect for main text
+        const typewriterText = 'USE YOUR VOICE TO EXPLORE THE PLANET AND MAKE IT SAFE.';
+        const twElem = document.getElementById('scene0-typewriter');
+        twElem.textContent = '';
+        let i = 0;
+        function typeWriter() {
+          if (i < typewriterText.length) {
+            twElem.textContent += typewriterText.charAt(i);
+            i++;
+            setTimeout(typeWriter, 28);
+          }
+        }
+        typeWriter();
+        document.getElementById('scene1-overlay').style.display = 'none';
+      }
+      // Scene 1: show astronaut and overlay text
+      else if(index === 1) {
+        document.getElementById('scene0-overlay').style.display = 'none';
+        document.getElementById('scene1-overlay').style.display = 'block';
+        // Typewriter effect for main text
+        const typewriterText1 = 'O₂ LEVEL: POOR';
+        const twElem1 = document.getElementById('scene1-typewriter');
+        twElem1.textContent = '';
+        let j = 0;
+        function typeWriter1() {
+          if (j < typewriterText1.length) {
+            twElem1.textContent += typewriterText1.charAt(j);
+            j++;
+            setTimeout(typeWriter1, 28);
+          }
+        }
+        typeWriter1();
+        // Show astronaut centered and large
+        if(currentAstronautElement) {
+          currentAstronautElement.style.left = '50vw';
+          currentAstronautElement.style.bottom = '8vh';
+          currentAstronautElement.style.width = '260px';
+          currentAstronautElement.classList.add('active');
+        }
+      }
+      // Scene 2: show astronaut (back) and overlay text
+      else if(index === 2) {
+        document.getElementById('scene0-overlay').style.display = 'none';
+        document.getElementById('scene1-overlay').style.display = 'none';
+        document.getElementById('scene2-overlay').style.display = 'block';
+        // Typewriter effect for main text
+        const typewriterText2 = 'THIS IS THE PERFECT SPOT TO PLANT';
+        const twElem2 = document.getElementById('scene2-typewriter');
+        twElem2.textContent = '';
+        let k = 0;
+        function typeWriter2() {
+          if (k < typewriterText2.length) {
+            twElem2.textContent += typewriterText2.charAt(k);
+            k++;
+            setTimeout(typeWriter2, 28);
+          }
+        }
+        typeWriter2();
+        // Show astronaut centered and large
+        if(currentAstronautElement) {
+          currentAstronautElement.style.left = '50vw';
+          currentAstronautElement.style.bottom = '8vh';
+          currentAstronautElement.style.width = '260px';
+          currentAstronautElement.classList.add('active');
+        }
+      } else {
+        document.getElementById('scene2-overlay').style.display = 'none';
+      }
+
+      // Set voice triggers and idle time
+      let keepListening = false;
+      if (scene.voice && scene.voice.length > 0) {
+        let currentVoiceTriggerIndex = 0;
+        const processVoice = () => {
+          if (currentVoiceTriggerIndex >= scene.voice.length) {
+            currentVoiceTriggerIndex = 0; // Reset for next idle
+            if (scene.idle) {
+              setTimeout(processVoice, scene.idle);
+            }
+            return;
+          }
+          const trigger = scene.voice[currentVoiceTriggerIndex];
+          const nextSceneIndex = trigger.next;
+          const nextScene = scenes[nextSceneIndex];
+
+          if (nextSceneIndex === 0) { // Restart
+            showScene(0);
+            return;
+          }
+
+          if (nextSceneIndex === 1) { // Next (for intro)
+            showScene(1);
+            return;
+          }
+
+          if (nextSceneIndex === 2) { // Walk to water
+            showScene(2);
+            return;
+          }
+
+          if (nextSceneIndex === 3) { // Open inventory
+            showScene(3);
+            return;
+          }
+
+          if (nextSceneIndex === 4) { // Plant the tree
+            showScene(4);
+            return;
+          }
+
+          if (nextSceneIndex === 5) { // Go to cave
+            showScene(5);
+            return;
+          }
+
+          if (nextSceneIndex === 6) { // Open tool box
+            showScene(6);
+            return;
+          }
+
+          if (nextSceneIndex === 7) { // Use spade
+            showScene(7);
+            return;
+          }
+
+          // Default to next scene if no specific trigger handled
+          showScene(nextSceneIndex);
+        };
+
+        // Start listening immediately
+        keepListening = true;
+        recognition.onresult = (event) => {
+          const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+          voiceStatus.textContent = 'Heard: "' + transcript + '"';
+          // Check if the current scene has voice triggers
+          if (scene.voice && scene.voice.length > 0) {
+            for (let i = 0; i < scene.voice.length; i++) {
+              const trigger = scene.voice[i];
+              if (trigger.trigger.some(t => transcript.includes(t))) {
+                currentVoiceTriggerIndex = i; // Set to the triggered voice trigger
+                processVoice(); // Process the triggered voice
+                return; // Exit on first match
+              }
+            }
+          }
+          // If no voice trigger, process idle
+          if (scene.idle) {
+            processVoice();
+          }
+        };
+        recognition.onend = () => {
+          if (keepListening) recognition.start();
+        };
+        recognition.onerror = (event) => {
+          voiceStatus.textContent = 'Error: ' + event.error;
+          keepListening = false;
+        };
+        recognition.start();
+      } else {
+        // If no voice triggers, process idle
+        if (scene.idle) {
+          setTimeout(processVoice, scene.idle);
+        }
+      }
+    }
+
+    // Start at scene 0 (intro)
+    showScene(0);
+  </script>
+</body>
+</html> 

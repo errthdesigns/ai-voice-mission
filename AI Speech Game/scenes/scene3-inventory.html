@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory - AI Speech Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: url('../assets/Backgrounds/bg-landing-scene3-small.png') center center/cover no-repeat,
+                  linear-gradient(135deg, #ff6b35 0%, #d2691e 50%, #8b4513 100%);
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: 'Orbitron', monospace;
+      position: relative;
+    }
+
+    /* Astronaut - exact Figma specifications */
+    .astronaut {
+      position: absolute;
+      left: 60px;
+      top: 350px;
+      width: 380px;
+      height: 570px;
+      flex-shrink: 0;
+      aspect-ratio: 2/3;
+      background: url('../assets/Astronaut/astronaut-back-small.png') center center/cover no-repeat;
+      z-index: 3;
+      opacity: 0;
+      transform: translateX(-100px) scale(0.8);
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .astronaut.animate {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      animation: astronautFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes astronautFloat {
+      0%, 100% { transform: translateX(0) translateY(0) scale(1); }
+      50% { transform: translateX(0) translateY(-20px) scale(1); }
+    }
+
+    .astronaut.jumping {
+      animation: jumpAnimation 0.5s ease-in-out;
+    }
+
+    @keyframes jumpAnimation {
+      0% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+      50% {
+        transform: translateX(0) translateY(-40px) scale(1.1);
+      }
+      100% {
+        transform: translateX(0) translateY(0) scale(1);
+      }
+    }
+
+    /* Title Panel - exact Figma positioning */
+    .title-panel {
+      position: absolute;
+      left: 732px;
+      top: 204px;
+      width: 455px;
+      height: 127px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    .title-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+    }
+
+    .title-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.1), 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      pointer-events: none;
+    }
+
+    .title-content {
+      position: absolute;
+      left: 0;
+      top: 31px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      line-height: 0;
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .subtitle {
+      position: absolute;
+      height: 15px;
+      left: 227.5px;
+      font-size: 12px;
+      top: 0;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    .title {
+      position: absolute;
+      height: 44px;
+      left: 227.5px;
+      font-size: 36px;
+      top: 22px;
+      transform: translateX(-50%);
+      width: 455px;
+      line-height: normal;
+    }
+
+    /* Tree Capsules - exact Figma positioning */
+    .tree-capsule {
+      position: absolute;
+      background: url('../assets/UI Components/ui-scene3-tree.png') center center/cover no-repeat;
+      z-index: 2;
+      opacity: 0;
+      transform: translateY(30px) scale(0.9);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tree-capsule.animate {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Center Capsule - focused (main one) */
+    .capsule-center {
+      left: 821px;
+      top: 361px;
+      width: 278px;
+      height: 417px;
+      transition-delay: 0.2s;
+    }
+
+    .capsule-center.animate {
+      opacity: 1;
+    }
+
+    /* Right Capsule - 50% opacity */
+    .capsule-right {
+      left: 1030px;
+      top: 401px;
+      width: 225px;
+      height: 338px;
+      transition-delay: 0.4s;
+    }
+
+    .capsule-right.animate {
+      opacity: 0.5;
+    }
+
+    /* Left Capsule - 50% opacity */
+    .capsule-left {
+      left: 661px;
+      top: 401px;
+      width: 225px;
+      height: 338px;
+      transition-delay: 0.6s;
+    }
+
+    .capsule-left.animate {
+      opacity: 0.5;
+    }
+
+    /* Voice Button Panel - exact Figma positioning */
+    .voice-button-panel {
+      position: absolute;
+      left: 732px;
+      top: 808px;
+      width: 455px;
+      height: 127px;
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      z-index: 5;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .voice-button-panel.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .voice-button-panel:hover {
+      backdrop-filter: blur(25px);
+    }
+
+    .voice-button-panel.listening {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      }
+      50% { 
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    .voice-button-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: 0px 0px 8px 0px inset rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+    }
+
+    .voice-button-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.1), 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+      pointer-events: none;
+    }
+
+    .voice-button-inner {
+      position: absolute;
+      height: 74px;
+      left: 44px;
+      border-radius: 20px;
+      top: 23px;
+      width: 367px;
+      border: 2px solid #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .voice-button-text {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      height: 23px;
+      line-height: 0;
+      color: #ffffff;
+      font-size: 20px;
+      text-align: center;
+      line-height: normal;
+    }
+
+    .voice-button-text .command {
+      font-weight: 400;
+    }
+
+    /* Typewriter Animation */
+    .typewriter {
+      opacity: 0;
+      position: relative;
+      display: inline-block;
+    }
+
+    .typewriter::after {
+      content: '|';
+      color: #ffffff;
+      font-weight: 100;
+      animation: blink 0.8s infinite;
+      position: absolute;
+      right: -8px;
+    }
+
+    .typewriter.typing-complete::after {
+      display: none;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1400px) {
+      .astronaut {
+        left: 60px;
+        width: 400px;
+        height: 600px;
+        top: 280px;
+      }
+
+      .title-panel {
+        left: 500px;
+        width: 350px;
+        height: 100px;
+        top: 180px;
+      }
+
+      .subtitle {
+        width: 350px;
+        font-size: 10px;
+        left: 175px;
+      }
+
+      .title {
+        width: 350px;
+        font-size: 28px;
+        left: 175px;
+      }
+
+      .capsule-left {
+        left: 450px;
+        top: 320px;
+        width: 160px;
+        height: 240px;
+      }
+
+      .capsule-center {
+        left: 540px;
+        top: 300px;
+        width: 200px;
+        height: 300px;
+      }
+
+      .capsule-right {
+        left: 670px;
+        top: 320px;
+        width: 160px;
+        height: 240px;
+      }
+
+      .voice-button-panel {
+        left: 500px;
+        top: 600px;
+        width: 350px;
+        height: 100px;
+      }
+
+      .voice-button-inner {
+        left: 30px;
+        top: 20px;
+        width: 290px;
+        height: 60px;
+      }
+
+      .voice-button-text {
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .astronaut {
+        left: 20px;
+        width: 200px;
+        height: 300px;
+        top: 400px;
+      }
+
+      .title-panel {
+        left: 50%;
+        transform: translateX(-50%);
+        width: 280px;
+        height: 80px;
+        top: 120px;
+      }
+
+      .subtitle {
+        width: 280px;
+        font-size: 8px;
+        left: 140px;
+      }
+
+      .title {
+        width: 280px;
+        font-size: 20px;
+        left: 140px;
+      }
+
+      .capsule-left {
+        left: 50%;
+        transform: translateX(-50%) translateX(-120px);
+        top: 220px;
+        width: 100px;
+        height: 150px;
+      }
+
+      .capsule-center {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 200px;
+        width: 130px;
+        height: 200px;
+      }
+
+      .capsule-right {
+        left: 50%;
+        transform: translateX(-50%) translateX(120px);
+        top: 220px;
+        width: 100px;
+        height: 150px;
+      }
+
+      .voice-button-panel {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 380px;
+        width: 280px;
+        height: 80px;
+      }
+
+      .voice-button-inner {
+        left: 20px;
+        top: 15px;
+        width: 240px;
+        height: 50px;
+      }
+
+      .voice-button-text {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Astronaut -->
+  <div class="astronaut"></div>
+  
+  <!-- Title Panel -->
+  <div class="title-panel">
+    <div class="title-content">
+      <div class="subtitle typewriter" id="subtitle">PROTOTYPE SCENE [03]</div>
+      <div class="title typewriter" id="title">INVENTORY</div>
+    </div>
+  </div>
+
+  <!-- Tree Capsules - exact Figma positioning -->
+  <div class="tree-capsule capsule-center"></div>
+  <div class="tree-capsule capsule-right"></div>
+  <div class="tree-capsule capsule-left"></div>
+
+  <!-- Voice Button Panel -->
+  <div class="voice-button-panel" id="voicePrompt">
+    <div class="voice-button-inner">
+      <div class="voice-button-text">
+        <span>SAY </span>
+        <span class="command">"PLANT THE TREE"</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Jump Animation Function
+    function astronautJump() {
+      const astronaut = document.querySelector('.astronaut');
+      if (!astronaut) return;
+      
+      const currentSrc = astronaut.style.backgroundImage || astronaut.src;
+      let baseImage, jumpImage;
+      
+      // Determine which images to use based on current astronaut
+      if (currentSrc.includes('astronaut-front-small') || currentSrc.includes('front')) {
+        baseImage = '../assets/Astronaut/astronaut-front-small.png';
+        jumpImage = '../assets/Astronaut/astronaut-jump-front-small.png';
+      } else if (currentSrc.includes('astronaut-back-small') || currentSrc.includes('back')) {
+        baseImage = '../assets/Astronaut/astronaut-back-small.png';
+        jumpImage = '../assets/Astronaut/astronaut-jump-back-small.png';
+      } else {
+        // Default to back for Scene 3
+        baseImage = '../assets/Astronaut/astronaut-back-small.png';
+        jumpImage = '../assets/Astronaut/astronaut-jump-back-small.png';
+      }
+      
+      // Jump animation sequence
+      if (astronaut.style.backgroundImage) {
+        // For astronauts using background-image
+        astronaut.style.backgroundImage = `url('${jumpImage}')`;
+        setTimeout(() => {
+          astronaut.style.backgroundImage = `url('${baseImage}')`;
+        }, 500);
+      } else {
+        // For astronauts using src attribute
+        astronaut.src = jumpImage;
+        setTimeout(() => {
+          astronaut.src = baseImage;
+        }, 500);
+      }
+      
+      // Add jump animation class
+      astronaut.classList.add('jumping');
+      setTimeout(() => {
+        astronaut.classList.remove('jumping');
+      }, 500);
+    }
+
+    // Speech Recognition Setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+        console.log('Voice input:', transcript);
+
+        // Check for jump command first
+        if (transcript.includes('jump')) {
+          console.log('Jump command recognized');
+          astronautJump();
+          return;
+        }
+
+        if (transcript.includes('plant the tree') || transcript.includes('plant tree')) {
+          console.log('Command recognized: PLANT THE TREE');
+          // Navigate to next scene
+          window.location.href = 'scene4-plant.html';
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+      };
+
+      recognition.onend = function() {
+        if (isListening) {
+          recognition.start(); // Restart if still supposed to be listening
+        }
+      };
+    }
+
+    function startListening() {
+      if (recognition && !isListening) {
+        isListening = true;
+        recognition.start();
+        document.getElementById('voicePrompt').classList.add('listening');
+        console.log('Started listening for: PLANT THE TREE');
+      }
+    }
+
+    function stopListening() {
+      if (recognition && isListening) {
+        isListening = false;
+        recognition.stop();
+        document.getElementById('voicePrompt').classList.remove('listening');
+      }
+    }
+
+    // Typewriter Animation Function
+    function typeWriter(element, text, speed = 30) {
+      element.innerHTML = '';
+      element.style.opacity = '1';
+      element.classList.add('typing');
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          setTimeout(() => {
+            element.classList.add('typing-complete');
+          }, 200);
+        }
+      }
+      type();
+    }
+
+    function initTypewriterAnimations() {
+      const typewriterElements = [
+        { element: document.getElementById('subtitle'), delay: 200, text: 'PROTOTYPE SCENE [03]' },
+        { element: document.getElementById('title'), delay: 800, text: 'INVENTORY' }
+      ];
+
+      // Clear initial content
+      typewriterElements.forEach(({ element }) => {
+        if (element) {
+          element.innerHTML = '';
+        }
+      });
+
+      // Start typing animations
+      typewriterElements.forEach(({ element, delay, text }) => {
+        if (element) {
+          setTimeout(() => {
+            typeWriter(element, text, 40);
+          }, delay);
+        }
+      });
+    }
+
+    // Initialize animations
+    document.addEventListener('DOMContentLoaded', () => {
+      initTypewriterAnimations();
+      
+      // Animate astronaut in after a short delay
+      setTimeout(() => {
+        document.querySelector('.astronaut').classList.add('animate');
+      }, 500);
+      
+      // Animate tree capsules in after title has finished (staggered)
+      setTimeout(() => {
+        document.querySelector('.capsule-center').classList.add('animate');
+      }, 1400); // After title finishes
+      
+      setTimeout(() => {
+        document.querySelector('.capsule-right').classList.add('animate');
+      }, 1600); // Slight delay for right capsule
+      
+      setTimeout(() => {
+        document.querySelector('.capsule-left').classList.add('animate');
+      }, 1800); // Slight delay for left capsule
+      
+      // Show voice prompt after all animations
+      setTimeout(() => {
+        document.getElementById('voicePrompt').classList.add('show');
+      }, 2500);
+      
+      // Auto-start listening after button animation
+      setTimeout(() => {
+        startListening();
+      }, 3500);
+    });
+
+    // ESC key to reset to game launcher
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        window.location.href = '../game-launcher.html';
+      }
+    });
+
+    // Handle page visibility change to manage speech recognition
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopListening();
+      } else {
+        setTimeout(startListening, 500);
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      stopListening();
+    });
+  </script>
+</body>
+</html> 
